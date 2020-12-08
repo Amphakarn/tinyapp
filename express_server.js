@@ -32,7 +32,6 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(res)
   console.log(req.body);
   res.send("ok");
 });
@@ -64,3 +63,15 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+// generate a random string to serve as our shortURL
+function generateRandomString() {
+  let result = "";
+  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let charsLength = chars.length;
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * charsLength));
+  }
+  return result;
+}
+
+console.log(generateRandomString());
