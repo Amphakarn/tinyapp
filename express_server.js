@@ -14,6 +14,17 @@ let urlDatabase = {
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+// generate a random string to serve as our shortURL
+function generateRandomString() {
+  let result = "";
+  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let charsLength = chars.length;
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * charsLength));
+  }
+  return result;
+}
+
 // GET method route
 // use res.render to load up an ejs view file
 app.get("/urls", (req, res) => {
@@ -36,61 +47,14 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   // add generated short URL and long URL to database
   urlDatabase[shortRandomString] = longURL;
-  const templateVars = { shortURL: shortRandomString, longURL: longURL }
-  // console.log(urlDatabase);
-  res.render("urls_show", templateVars);
+  res.redirect(`/urls/${shortRandomString}`);
 });
-
-// MAY NOT NEED THESE LINES - LINE 45 STILL WRONG?
-// app.get(`/urls/shortRandomString`, (req, res) => {
-//   const templateVars = { shortURL: req.shortRandomString, longURL: urlDatabase[req.shortRandomString] };
-// res.render("urls_show", templateVars);
-// })
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log(req)
-  const temp = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
-  console.log(temp)
-  // const longURL = 
-  // res.redirect(longURL);
+  const longURL = urlDatabase[req.params.shortURL]
+  res.redirect(`${longURL}`);
 });
-
-
-
-// app.get("/", (req, res) => {
-//   res.send("Hello!");
-// });
-
-// app.get("/urls.json", (req, res) => {
-//   res.json(urlDatabase);
-// });
-
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>World</b></body></html>\n");
-// })
-
-// app.get("/set", (req, res) => {
-//   const a = 1;
-//   res.send(`a = ${a}`);
-// });
-
-// app.get("/fetch", (req, res) => {
-//   res.send(`a = ${a}`);
-// });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-// generate a random string to serve as our shortURL
-function generateRandomString() {
-  let result = "";
-  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let charsLength = chars.length;
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * charsLength));
-  }
-  return result;
-}
-
-// console.log(generateRandomString());
