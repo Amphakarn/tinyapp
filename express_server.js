@@ -4,7 +4,7 @@ const PORT = 3002;
 // Set ejs as the view engine
 app.set("view engine", "ejs");
 
-const urlDatabase = {
+let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
@@ -31,9 +31,28 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send("ok");
+app.post("/urls", (req, res) => {  
+  const shortRandomString = generateRandomString();
+  const longURL = req.body.longURL;
+  // add generated short URL and long URL to database
+  urlDatabase[shortRandomString] = longURL;
+  const templateVars = { shortURL: shortRandomString, longURL: longURL }
+  // console.log(urlDatabase);
+  res.render("urls_show", templateVars);
+});
+
+// MAY NOT NEED THESE LINES - LINE 45 STILL WRONG?
+// app.get(`/urls/shortRandomString`, (req, res) => {
+//   const templateVars = { shortURL: req.shortRandomString, longURL: urlDatabase[req.shortRandomString] };
+// res.render("urls_show", templateVars);
+// })
+
+app.get("/u/:shortURL", (req, res) => {
+  console.log(req)
+  const temp = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  console.log(temp)
+  // const longURL = 
+  // res.redirect(longURL);
 });
 
 
@@ -74,4 +93,4 @@ function generateRandomString() {
   return result;
 }
 
-console.log(generateRandomString());
+// console.log(generateRandomString());
