@@ -9,9 +9,17 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+// GET method route
+// use res.render to load up an ejs view file
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+  // Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  res.render("url_show", templateVars);
 });
 
 
