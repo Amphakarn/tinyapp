@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
 const PORT = 3002;
+let cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
 // Set ejs as the view engine
 app.set("view engine", "ejs");
 
@@ -26,11 +29,11 @@ const generateNewKey = () => {
   return newKey; // does it require return?
 };
 
-
 // use res.render to load up an ejs view file
 // Show the URLs
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
+  console.log(req.cookies);
   res.render("urls_index", templateVars);
 });
 
@@ -69,7 +72,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   // console.log("the long URL (value): ", urlDatabase[shortURL]);
   delete urlDatabase[shortURL];
   res.redirect("/urls");
-})
+});
 
 // Edit URL
 app.post("/urls/:shortURL/edit", (req, res) => {
@@ -77,7 +80,22 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
   res.redirect('/urls');
-})
+});
+
+// Create login
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username);
+  // const cookieName = req.body.username;
+  // console.log("CookieName: ", cookieName);
+  res.redirect('/urls');
+});
+
+// Display the username
+const templateVars = {
+  username: req.cookies["username"],
+
+};
+res.render("urls_index", templateVars);
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
