@@ -1,11 +1,14 @@
 const express = require("express");
 const app = express();
 const PORT = 3002;
-let cookieParser = require('cookie-parser');
-app.use(cookieParser());
 
 // Set ejs as the view engine
 app.set("view engine", "ejs");
+
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+
 
 // The body-parser library will convert the request body from a Buffer into string that we can read.
 // It will then add the data to the req(request) object under the key body.
@@ -30,10 +33,10 @@ const generateNewKey = () => {
 };
 
 // use res.render to load up an ejs view file
-// Show the URLs
+// Show the URLs and username
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
-  console.log(req.cookies);
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  // console.log(req.cookies);
   res.render("urls_index", templateVars);
 });
 
@@ -46,6 +49,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   // Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  console.log(templateVars);
   res.render("urls_show", templateVars);
 });
 
@@ -79,23 +83,20 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
-  res.redirect('/urls');
+  res.redirect("/urls");
 });
 
-// Create login
+// Create login & Cookies
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
-  // const cookieName = req.body.username;
-  // console.log("CookieName: ", cookieName);
-  res.redirect('/urls');
+  res.redirect("/urls");
 });
 
-// Display the username
-const templateVars = {
-  username: req.cookies["username"],
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls");
+});
 
-};
-res.render("urls_index", templateVars);
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
