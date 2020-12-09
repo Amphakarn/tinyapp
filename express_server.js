@@ -24,7 +24,7 @@ let urlDatabase = {
 // generate a random string to serve as our shortURL
 const generateNewKey = () => {
   let newKey = "";
-  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let charsLength = chars.length;
   for (let i = 0; i < 6; i++) {
     newKey += chars.charAt(Math.floor(Math.random() * charsLength));
@@ -42,7 +42,7 @@ app.get("/urls", (req, res) => {
 
 // Show the create new URL
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new")
+  res.render("urls_new");
 });
 
 // Show the short URL associated to the long URL & edit URL
@@ -55,12 +55,12 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // Redirect to the long URL associated to the short URL
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL]
+  const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
 // create a URL
-app.post("/urls", (req, res) => {  
+app.post("/urls", (req, res) => {
   const shortURL = generateNewKey();
   const longURL = req.body.longURL;
   // add generated short URL and long URL to database
