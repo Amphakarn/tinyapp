@@ -26,66 +26,42 @@ const generateNewKey = () => {
   return newKey; // does it require return?
 };
 
-// create actions
 
-// const showAllURLS = (urls) => {
-//   return urls;
-// };
-
-// const showOneURL = (urls, key) => {
-//   if(urls[key]) {
-//     return urls[key];
-//   } else {
-//     return null;
-//   }
-// };
-
-// const addOneURL = (urls, newURL) => {
-//   urls[newKey()] = newURL;
-// }
-
-// const removeURL = (urls, key) => {
-//   delete url[key];
-// };
-
-// const editURL = (urls, key, newURL) => {
-//   urls[key] = newURL;
-// };
-
-// GET method route
 // use res.render to load up an ejs view file
-
+// Show the URLs
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
+// Show the create new URL
 app.get("/urls/new", (req, res) => {
   res.render("urls_new")
 });
 
+// Show the short URL associated to the long URL & edit URL
 app.get("/urls/:shortURL", (req, res) => {
   // Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 
+// Redirect to the long URL associated to the short URL
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL]
+  res.redirect(longURL);
+});
+
+// create a URL
 app.post("/urls", (req, res) => {  
   const shortURL = generateNewKey();
   const longURL = req.body.longURL;
   // add generated short URL and long URL to database
   urlDatabase[shortURL] = longURL;
   res.redirect(`/urls/${shortURL}`);
-  // console.log(urlDatabase);
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL]
-  console.log("This is the short URL: ", req.params.shortURL);
-  res.redirect(longURL);
-});
-
-// // Delete URL
+// Delete URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   // console.log("the database: ", urlDatabase);
@@ -93,7 +69,14 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   // console.log("the long URL (value): ", urlDatabase[shortURL]);
   delete urlDatabase[shortURL];
   res.redirect("/urls");
+})
 
+// Edit URL
+app.post("/urls/:shortURL/edit", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL] = longURL;
+  res.redirect('/urls');
 })
 
 app.listen(PORT, () => {

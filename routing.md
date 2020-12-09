@@ -30,3 +30,30 @@ Routes & Events
 - POST/urls => addOneURL (Create)
 - POST/urls/:url_id/update => editURL (Update) This route needs the url id and  a string with the new url value
 - POST/urls/:url_id/delete => removeURL (Delete)
+
+
+// create actions (may use later when implement more complex assignments)
+
+// const showAllURLS = (urls) => {
+//   return urls;
+// };
+
+// const showOneURL = (urls, key) => {
+//   if(urls[key]) {
+//     return urls[key];
+//   } else {
+//     return null;
+//   }
+// };
+
+// const addOneURL = (urls, newURL) => {
+//   urls[newKey()] = newURL;
+// }
+
+// const removeURL = (urls, key) => {
+//   delete url[key];
+// };
+
+// const editURL = (urls, key, newURL) => {
+//   urls[key] = newURL;
+// };
