@@ -1,11 +1,17 @@
 <!-- This is the header partial -->
 <header>
   <nav class="navbar navbar-expand-md navbar-dark bg-success">
+    <form method="GET" action="/register">
+      <a href="/register">Click here to register!</a>
+    </form>
     <% if (!user) { %>
-      <form method="POST" action="/login">
+      <form method="GET" action="/login">
+        <a href="/login">Click here to login</a>
+      </form>
+      <!-- <form method="POST" action="/login">
         <input type="text" name="username" placeholder="Username">
         <button type="submit">Login</button>
-      </form>
+      </form> -->
     <% } else { %>
       <p>Logged In As: </p> <%= user.email %>
       <form method="POST" action="/logout">

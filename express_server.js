@@ -49,7 +49,6 @@ const generateNewKey = () => {
 app.get("/urls", (req, res) => {
   const user = users[req.cookies.user_id]
   const templateVars = { urls: urlDatabase, user };
-  // const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 
@@ -75,9 +74,15 @@ app.get("/u/:shortURL", (req, res) => {
 // Show registration page
 app.get("/register", (req, res) => {
   const templateVars = { users };
-  res.render("urls_register", templateVars);
+  res.render("users_register", templateVars);
 })
 
+// Show login
+app.get("/login", (req, res) => {
+  const user = users[req.cookies.user_id]
+  const templateVars = { user };
+  res.render("users_login", templateVars);
+})
 
 // create a URL
 app.post("/urls", (req, res) => {
@@ -108,11 +113,11 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 // Create login & Cookies
 app.post("/login", (req, res) => {
-  // use username from req body to look up user object in DB
-  const username = req.body.username;
+  // use email from req body to look up user object in DB
+  const email = req.body.email;
   let user;
   for (let key in users) {
-    if (username === users[key].email) {
+    if (email === users[key].email) {
       user = users[key];
     }
   }
@@ -138,7 +143,7 @@ app.post("/register", (req, res) => {
   if (!newEmail || !newPwd) {
     res.send("400 - Illegal Request!")
   } else if (isEmailExist(newEmail)) {
-    res.send("400 - Illegal Request! \n Your username is in the system!")
+    res.send("400 - Illegal Request! \n Your account is in the system!")
   } else {
     users[newID] = { id: newID, email: newEmail, password: newPwd };
     res.cookie("user_id", newID);
@@ -155,6 +160,10 @@ const isEmailExist = (newEmail) => {
   }
   return false;
 };
+
+// app.post("/login", (req, res) => {
+
+// })
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

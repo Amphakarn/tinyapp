@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Login</title>
+</head>
+
+<body>
+  <h2>Login</h2>
+  <div>
+    <% if (!user) { %>
+    <form method="POST" action="/login">
+      <label>Email address:</label>
+      <input type="text" name="email" placeholder="Enter email"><br>
+      <label>Password:</label>
+      <input type="password" name=password placeholder="Password"><br>
+      <button type="submit">Login</button>
+    </form>
+    <% } else { %>
+    <p>Logged In As: </p> <%= user.email %>
+    <form method="POST" action="/logout">
+      <button type="submit">Logout</button>
+    </form>
+    <% } %>
+  </div>
+</body>
+
+</html>
