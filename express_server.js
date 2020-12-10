@@ -8,18 +8,29 @@ app.set("view engine", "ejs");
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
-
-
 // The body-parser library will convert the request body from a Buffer into string that we can read.
 // It will then add the data to the req(request) object under the key body.
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // create the URL database object
 let urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", shortURL: "b2xVn2", id: 1},
+  "9sm5xK": { longURL: "http://www.google.com", shortURL: "9sm5xK", id: 2}
 };
+
+const users = {
+  "1": {
+    id: "1",
+    email: "aa@example.com",
+    password: "passwordA"
+  },
+  "2": {
+    id: "2",
+    email: "bb@example.com",
+    password: "passwordB"
+  }
+}
 
 // generate a random string to serve as our shortURL
 const generateNewKey = () => {
@@ -35,8 +46,9 @@ const generateNewKey = () => {
 // use res.render to load up an ejs view file
 // Show the URLs and username
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
-  // console.log(req.cookies);
+  const user = users[req.cookies.user_id]
+  const templateVars = { urls: urlDatabase, user };
+  // const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 
@@ -58,6 +70,13 @@ app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
+
+// Show registration page
+app.get("/register", (req, res) => {
+  const templateVars = { users };
+  res.render("urls_register", templateVars);
+})
+
 
 // create a URL
 app.post("/urls", (req, res) => {
@@ -86,17 +105,49 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   res.redirect("/urls");
 });
 
+
+// const users = {
+//   "userA": {
+//     id: "userA",
+//     email: "aa@example.com",
+//     password: "passwordA"
+//   }
+// }
 // Create login & Cookies
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+  // use username from req body to look up user object in DB
+  const username = req.body.username;
+  let user;
+  for (let key in users) {
+    if (username === users[key].email) {
+      user = users[key];
+    }
+  }
+
+  // assign user id property from user object to the cookie
+  if (user) {
+    res.cookie("user_id", user.id);
+    res.redirect("/urls");
+  } else {
+    res.send("USER NOT FOUND!");
+  }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
+// Create new registra
+app.post("/register", (req, res) => {
+  const newID = generateNewKey();
+  const newEmail = req.body.email;
+  const newPwd = req.body.password;
+  users[newID] = { id:newID, email:newEmail, password: newPwd };
+  res.cookie("user_id", newID);
+  console.log(users)
+  res.redirect("/urls");
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
