@@ -115,10 +115,13 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 app.post("/login", (req, res) => {
   // use email from req body to look up user object in DB
   const email = req.body.email;
+  const password = req.body.password;
   let user;
   for (let key in users) {
-    if (email === users[key].email) {
+    if (isEmailExist(email) && isPasswordCorrect(password)) {
       user = users[key];
+    } else {
+      res.send("Your email address or password are incorrect!"); // need to find a better logic
     }
   }
   // assign user id property from user object to the cookie
@@ -152,9 +155,21 @@ app.post("/register", (req, res) => {
   }
 })
 
-const isEmailExist = (newEmail) => {
+const isEmailExist = (email) => {
+  console.log('EMAIL: ', email)
   for (const key in users) {
-    if (users[key].email === newEmail) {
+    if (users[key].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const isPasswordCorrect = (password) => {
+  console.log('PASSWORD: ', password)
+
+  for (const key in users) {
+    if (users[key].password === password) {
       return true;
     }
   }
