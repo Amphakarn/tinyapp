@@ -11,12 +11,13 @@ app.use(cookieParser());
 // The body-parser library will convert the request body from a Buffer into string that we can read.
 // It will then add the data to the req(request) object under the key body.
 const bodyParser = require("body-parser");
+const { response } = require("express");
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // create the URL database object
 let urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", shortURL: "b2xVn2", id: 1},
-  "9sm5xK": { longURL: "http://www.google.com", shortURL: "9sm5xK", id: 2}
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", shortURL: "b2xVn2", id: 1 },
+  "9sm5xK": { longURL: "http://www.google.com", shortURL: "9sm5xK", id: 2 }
 };
 
 const users = {
@@ -105,14 +106,6 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   res.redirect("/urls");
 });
 
-
-// const users = {
-//   "userA": {
-//     id: "userA",
-//     email: "aa@example.com",
-//     password: "passwordA"
-//   }
-// }
 // Create login & Cookies
 app.post("/login", (req, res) => {
   // use username from req body to look up user object in DB
@@ -123,7 +116,6 @@ app.post("/login", (req, res) => {
       user = users[key];
     }
   }
-
   // assign user id property from user object to the cookie
   if (user) {
     res.cookie("user_id", user.id);
@@ -143,11 +135,26 @@ app.post("/register", (req, res) => {
   const newID = generateNewKey();
   const newEmail = req.body.email;
   const newPwd = req.body.password;
-  users[newID] = { id:newID, email:newEmail, password: newPwd };
-  res.cookie("user_id", newID);
-  console.log(users)
-  res.redirect("/urls");
+  if (!newEmail || !newPwd) {
+    res.send("400 - Illegal Request!")
+  } else if (isEmailExist(newEmail)) {
+    res.send("400 - Illegal Request! \n Your username is in the system!")
+  } else {
+    users[newID] = { id: newID, email: newEmail, password: newPwd };
+    res.cookie("user_id", newID);
+    res.redirect("/urls");
+    console.log(users);
+  }
 })
+
+const isEmailExist = (newEmail) => {
+  for (const key in users) {
+    if (users[key].email === newEmail) {
+      return true;
+    }
+  }
+  return false;
+};
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
