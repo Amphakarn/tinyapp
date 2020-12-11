@@ -1,13 +1,19 @@
 <!-- This is the header partial -->
 <header>
   <nav class="navbar navbar-expand-md navbar-dark bg-success">
-    <% if (!username) { %>
-      <form method="POST" action="/login">
+    <form method="GET" action="/register">
+      <a href="/register">Register</a>
+    </form>
+    <% if (!user) { %>
+      <form method="GET" action="/login">
+        <a href="/login">Login</a>
+      </form>
+      <!-- <form method="POST" action="/login">
         <input type="text" name="username" placeholder="Username">
         <button type="submit">Login</button>
-      </form>
+      </form> -->
     <% } else { %>
-      <p>Logged In As:  </p> <%= username %>
+      <p>Welcome! </p> <%= user.email %>
       <form method="POST" action="/logout">
         <button type="submit">Logout</button>
       </form>
