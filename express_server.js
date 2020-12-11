@@ -17,7 +17,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // create the URL database object
 let urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", shortURL: "b2xVn2", id: 1 },
-  "9sm5xK": { longURL: "http://www.google.com", shortURL: "9sm5xK", id: 2 }
+  "9sm5xK": { longURL: "http://www.google.com", shortURL: "9sm5xK", id: 2 },
+  "A1B2cD": { longURL: "http://www.yahoo.com", shortURL: "A1B2cD", id: 1 }
 };
 
 const users = {
@@ -76,6 +77,24 @@ const authenticateUser = (email, password) => {
   return false;
 };
 
+const urlsForUser = (id) => {
+  let matchedUrls = {};
+  for (const url in urlDatabase) {
+    // console.log("urlDatabase[url] = ", urlDatabase[url]);
+    if (urlDatabase[url].id === id) {
+      matchedUrls[url] = {
+        longURL: urlDatabase[url].longURL,
+        shortURL: urlDatabase[url].shortURL,
+        id: urlDatabase[url].id
+      };
+    }    
+  }  
+  // console.log("matchedUrls = ", matchedUrls);
+  return matchedUrls;
+};
+urlsForUser(1);
+
+
 // generate a random string to serve as our shortURL
 const generateNewKey = () => {
   let newKey = "";
@@ -87,15 +106,7 @@ const generateNewKey = () => {
   return newKey; // does it require return?
 };
 
-// use res.render to load up an ejs view file
-// Show the URLs and user_id
-app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: findUserByID(req.cookies.user_id) };
-  // console.log(findUserByID(req.cookies.user_id))
-  res.render("urls_index", templateVars);
-});
-
-// this end point is for checking the content of usersDb
+// Checking the content of usersDb
 // remove when cleaning up the code
 app.get('/users', (req, res) => {
   res.json(users);
@@ -105,10 +116,42 @@ app.get('/db', (req, res) => {
   res.json(urlDatabase);
 });
 
+// use res.render to load up an ejs view file
+// Show the URLs and user_id
+/* Original***
+app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase, user: findUserByID(req.cookies.user_id) };
+  // console.log(findUserByID(req.cookies.user_id))
+  res.render("urls_index", templateVars);
+});
+*/
+
+app.get("/urls", (req, res) => {
+  const id = req.cookies.user_id;
+  let matchedUrlDB;
+  // console.log("ID = ", req.cookies.user_id)
+  if (id) {
+    matchedUrlDB = urlsForUser(id);
+    console.log("matchedUrlDB = ", matchedUrlDB);    
+  }  
+  const templateVars = { urls: matchedUrlDB, user: id };
+  res.render("urls_index", templateVars);
+});
+
+// flash=require("connect-flash");
+// app.use(flash());
 // Show the create new URL
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: findUserByID(req.cookies.user_id) };
-  res.render("urls_new", templateVars);
+  // console.log(findUserByID(req.cookies.user_id));
+  if (!findUserByID(req.cookies.user_id)) {
+    // **** ADD display a message or prompt suggesting to sign in or register first ***
+    // req.flash('msg', 'some msg');
+    // req.flash("msg", "Please sign in or register first.");
+    res.redirect("/login");
+  } else {
+    res.render("urls_new", templateVars);
+  }
 });
 
 // Show the short URL associated to the long URL & edit URL
@@ -142,7 +185,7 @@ app.get("/login", (req, res) => {
   res.render("users_login", templateVars);
 });
 
-// create a URL
+// Create a new URL
 app.post("/urls", (req, res) => {
   const shortURL = generateNewKey();
   const longURL = req.body.longURL;
