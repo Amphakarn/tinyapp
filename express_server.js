@@ -11,7 +11,7 @@ app.use(cookieParser());
 // The body-parser library will convert the request body from a Buffer into string that we can read.
 // It will then add the data to the req(request) object under the key body.
 const bodyParser = require("body-parser");
-const { response } = require("express");
+// const { response } = require("express"); // duplicate with line 1?
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // create the URL database object
@@ -31,7 +31,20 @@ const users = {
     email: "bb@example.com",
     password: "passwordB"
   }
-}
+};
+
+const addNewUser = (email, password) => {
+  const newUserID = generateNewKey();
+
+  const newUserObj = {
+    id: newUserID,
+    email,
+    password
+  };
+
+  users[newUserID] = newUserObj;
+  return newUserID;
+};
 
 const findUserByID = (id) => {
   for (const user in users) {
@@ -61,7 +74,7 @@ const authenticateUser = (email, password) => {
     }
   }
   return false;
-}
+};
 
 // generate a random string to serve as our shortURL
 const generateNewKey = () => {
@@ -77,7 +90,6 @@ const generateNewKey = () => {
 // use res.render to load up an ejs view file
 // Show the URLs and user_id
 app.get("/urls", (req, res) => {
-  const user = users[req.cookies.user_id]
   const templateVars = { urls: urlDatabase, user: findUserByID(req.cookies.user_id) };
   // console.log(findUserByID(req.cookies.user_id))
   res.render("urls_index", templateVars);
@@ -93,10 +105,9 @@ app.get('/db', (req, res) => {
   res.json(urlDatabase);
 });
 
-
 // Show the create new URL
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: findUserByID(req.cookies.user_id) }
+  const templateVars = { user: findUserByID(req.cookies.user_id) };
   res.render("urls_new", templateVars);
 });
 
@@ -123,22 +134,21 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/register", (req, res) => {
   const templateVars = { user: findUserByID(req.cookies.user_id) };
   res.render("users_register", templateVars);
-})
+});
 
 // Show login
 app.get("/login", (req, res) => {
-  const user = users[req.cookies.user_id]
   const templateVars = { user: findUserByID(req.cookies.user_id) };
   res.render("users_login", templateVars);
-})
+});
 
 // create a URL
 app.post("/urls", (req, res) => {
   const shortURL = generateNewKey();
   const longURL = req.body.longURL;
   // add generated short URL and long URL to database
-  console.log(req.cookies.user_id)
-  urlDatabase[shortURL] = { 
+  console.log(req.cookies.user_id);
+  urlDatabase[shortURL] = {
     longURL: longURL,
     shortURL: shortURL,
     id: req.cookies.user_id
@@ -160,7 +170,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:shortURL/edit", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = req.body.longURL;
-  urlDatabase[shortURL] = { 
+  urlDatabase[shortURL] = {
     longURL: longURL,
     shortURL: shortURL,
     id: req.cookies.user_id
@@ -182,7 +192,7 @@ app.post("/login", (req, res) => {
       res.status(403).send("Cannot find your account!");
     } else {
       res.status(403).send("Wrong email address or password!");
-    }    
+    }
   }
 });
 
@@ -191,28 +201,13 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
-const addNewUser = (email, password) => {
-  const newUserID = generateNewKey();
-
-  const newUserObj = {
-    id: newUserID,
-    email,
-    password
-  };
-
-  // Add user Object into the users
-  users[newUserID] = newUserObj;
-  // Return the id of the user
-  return newUserID;
-};
-
 // Create new registra
 app.post("/register", (req, res) => {
   // receive email and password from user login
   const newEmail = req.body.email;
   const newPwd = req.body.password;
   const user = findUserByEmail(newEmail);
-  console.log("user = ", user)
+  console.log("user = ", user);
   if (user) {
     res.status(403).send("This account exists in the system!");
   } else {
