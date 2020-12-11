@@ -191,8 +191,6 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
-<<<<<<< HEAD
-=======
 const addNewUser = (email, password) => {
   const newUserID = generateNewKey();
 
@@ -225,7 +223,6 @@ app.post("/register", (req, res) => {
   }
 });
 
->>>>>>> feature/user-registration
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
