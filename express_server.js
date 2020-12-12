@@ -16,9 +16,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // create the URL database object
 let urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", shortURL: "b2xVn2", id: 1 },
-  "9sm5xK": { longURL: "http://www.google.com", shortURL: "9sm5xK", id: 2 },
-  "A1B2cD": { longURL: "http://www.yahoo.com", shortURL: "A1B2cD", id: 1 }
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", shortURL: "b2xVn2", id: "1" },
+  "9sm5xK": { longURL: "http://www.google.com", shortURL: "9sm5xK", id: "2" },
+  "A1B2cD": { longURL: "http://www.yahoo.com", shortURL: "A1B2cD", id: "1" }
 };
 
 const users = {
@@ -80,20 +80,13 @@ const authenticateUser = (email, password) => {
 const urlsForUser = (id) => {
   let matchedUrls = {};
   for (const url in urlDatabase) {
-    // console.log("urlDatabase[url] = ", urlDatabase[url]);
-    if (urlDatabase[url].id === id) {
-      matchedUrls[url] = {
-        longURL: urlDatabase[url].longURL,
-        shortURL: urlDatabase[url].shortURL,
-        id: urlDatabase[url].id
-      };
+    if ((urlDatabase[url].id) === id) {
+      matchedUrls[url] = urlDatabase[url];
     }    
   }  
   // console.log("matchedUrls = ", matchedUrls);
   return matchedUrls;
 };
-urlsForUser(1);
-
 
 // generate a random string to serve as our shortURL
 const generateNewKey = () => {
@@ -112,42 +105,35 @@ app.get('/users', (req, res) => {
   res.json(users);
 });
 
-app.get('/db', (req, res) => {
+app.get('/urlDB', (req, res) => {
   res.json(urlDatabase);
 });
-
-// use res.render to load up an ejs view file
-// Show the URLs and user_id
-/* Original***
-app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: findUserByID(req.cookies.user_id) };
-  // console.log(findUserByID(req.cookies.user_id))
-  res.render("urls_index", templateVars);
+app.get('/SpecificDB', (req, res) => {
+  res.json(urlsForUser(req.cookies.user_id));
 });
-*/
 
+// Show the URLs and user_id
 app.get("/urls", (req, res) => {
   const id = req.cookies.user_id;
-  let matchedUrlDB;
-  // console.log("ID = ", req.cookies.user_id)
+  let matchedUrlDB = {};
   if (id) {
     matchedUrlDB = urlsForUser(id);
-    console.log("matchedUrlDB = ", matchedUrlDB);    
+    // console.log("MATCHED_URLS_DB = ", matchedUrlDB);
+    // const email = users[id].email;
+    // const templateVars = { urls: matchedUrlDB, user: id, emailAddr: email };
+    const templateVars = { urls: matchedUrlDB, user: id };
+    // console.log(templateVars, email)
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect("/login");
   }  
-  const templateVars = { urls: matchedUrlDB, user: id };
-  res.render("urls_index", templateVars);
 });
 
-// flash=require("connect-flash");
-// app.use(flash());
 // Show the create new URL
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: findUserByID(req.cookies.user_id) };
   // console.log(findUserByID(req.cookies.user_id));
   if (!findUserByID(req.cookies.user_id)) {
-    // **** ADD display a message or prompt suggesting to sign in or register first ***
-    // req.flash('msg', 'some msg');
-    // req.flash("msg", "Please sign in or register first.");
     res.redirect("/login");
   } else {
     res.render("urls_new", templateVars);
@@ -158,12 +144,6 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   // Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: findUserByID(req.cookies.user_id) };
-  // console.log("urls/:shortURL - templateVars: ", templateVars);
-  // console.log(urlDatabase);
-  // console.log();
-  // console.log(req.params.shortURL);
-  // console.log();
-  // console.log(urlDatabase[req.params.shortURL]);
   res.render("urls_show", templateVars);
 });
 
@@ -190,7 +170,7 @@ app.post("/urls", (req, res) => {
   const shortURL = generateNewKey();
   const longURL = req.body.longURL;
   // add generated short URL and long URL to database
-  console.log(req.cookies.user_id);
+  // console.log(req.cookies.user_id);
   urlDatabase[shortURL] = {
     longURL: longURL,
     shortURL: shortURL,
@@ -201,24 +181,31 @@ app.post("/urls", (req, res) => {
 
 // Delete URL
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const shortURL = req.params.shortURL;
-  // console.log("the database: ", urlDatabase);
-  // console.log("the short URL (key): ", shortURL);
-  // console.log("the long URL (value): ", urlDatabase[shortURL]);
-  delete urlDatabase[shortURL];
-  res.redirect("/urls");
+  const id = req.cookies.user_id;
+  if (id) {
+    const shortURL = req.params.shortURL;
+    delete urlDatabase[shortURL];
+    res.redirect("/urls");
+  } else {
+    res.status(405).send("You do not have a permission to delete the data!");
+  }  
 });
 
 // Edit URL
 app.post("/urls/:shortURL/edit", (req, res) => {
-  const shortURL = req.params.shortURL;
-  const longURL = req.body.longURL;
-  urlDatabase[shortURL] = {
-    longURL: longURL,
-    shortURL: shortURL,
-    id: req.cookies.user_id
-  };
-  res.redirect("/urls");
+  const id = req.cookies.user_id;
+  if (id) {
+    const shortURL = req.params.shortURL;
+    const longURL = req.body.longURL;
+    urlDatabase[shortURL] = {
+      longURL: longURL,
+      shortURL: shortURL,
+      id: req.cookies.user_id
+    };
+    res.redirect("/urls");
+  } else {
+    res.status(405).send("You do not have a permission to edit the data!");
+  }  
 });
 
 // Create login & Cookies
@@ -250,12 +237,12 @@ app.post("/register", (req, res) => {
   const newEmail = req.body.email;
   const newPwd = req.body.password;
   const user = findUserByEmail(newEmail);
-  console.log("user = ", user);
+  // console.log("user = ", user);
   if (user) {
     res.status(403).send("This account exists in the system!");
   } else {
     const user_id = addNewUser(newEmail, newPwd);
-    console.log(user_id);
+    // console.log(user_id);
     res.cookie("user_id", user_id);
     res.redirect("/urls");
   }
