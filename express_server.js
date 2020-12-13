@@ -44,7 +44,6 @@ app.get('/urls', (req, res) => {
   if (id) {
     matchedUrlDB = urlsForUser(id, urlDatabase);
     const email = users[id].email;
-    // console.log('email = ', email)
     const templateVars = { urls: matchedUrlDB, user: email };
     res.render('urls_index', templateVars);
   } else {
@@ -170,5 +169,5 @@ app.post('/register', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`App listening on port ${PORT}!`);
 });
