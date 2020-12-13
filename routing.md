@@ -57,3 +57,17 @@ Routes & Events
 // const editURL = (urls, key, newURL) => {
 //   urls[key] = newURL;
 // };
+
+
+// For checking the contents as JSON object
+app.get('/users', (req, res) => {
+  res.json(users);
+});
+
+app.get('/urlDB', (req, res) => {
+  res.json(urlDatabase);
+});
+
+app.get('/SpecificDB', (req, res) => {
+  res.json(urlsForUser(req.session.user_id, urlDatabase));
+});

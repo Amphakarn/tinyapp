@@ -37,26 +37,15 @@ const users = {
   }
 };
 
-// Check the contents as JSON object
-app.get('/users', (req, res) => {
-  res.json(users);
-});
-
-app.get('/urlDB', (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get('/SpecificDB', (req, res) => {
-  res.json(urlsForUser(req.session.user_id, urlDatabase));
-});
-
 // Show the URLs and user_id
 app.get('/urls', (req, res) => {
   const id = req.session.user_id;
   let matchedUrlDB = {};
   if (id) {
     matchedUrlDB = urlsForUser(id, urlDatabase);
-    const templateVars = { urls: matchedUrlDB, user: id };
+    const email = users[id].email;
+    // console.log('email = ', email)
+    const templateVars = { urls: matchedUrlDB, user: email };
     res.render('urls_index', templateVars);
   } else {
     res.redirect('/login');
@@ -65,8 +54,9 @@ app.get('/urls', (req, res) => {
 
 // Show the create new URL
 app.get('/urls/new', (req, res) => {
-  const templateVars = { user: findUserByID(req.session.user_id, users) };
-  if (!findUserByID(req.session.user_id, users)) {
+  const email = findUserByID(req.session.user_id, users).email;
+  const templateVars = { user: email };
+  if (!email) {
     res.redirect('/login');
   } else {
     res.render('urls_new', templateVars);
@@ -75,8 +65,9 @@ app.get('/urls/new', (req, res) => {
 
 // Show the short URL associated to the long URL & edit URL
 app.get('/urls/:shortURL', (req, res) => {
+  const email = findUserByID(req.session.user_id, users).email;
   // Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: findUserByID(req.session.user_id) };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: email };
   res.render('urls_show', templateVars);
 });
 
@@ -88,13 +79,15 @@ app.get('/u/:shortURL', (req, res) => {
 
 // Show registration page
 app.get('/register', (req, res) => {
-  const templateVars = { user: findUserByID(req.session.user_id, users) };
+  const email = findUserByID(req.session.user_id, users).email;
+  const templateVars = { user: email };
   res.render('users_register', templateVars);
 });
 
 // Show login
 app.get('/login', (req, res) => {
-  const templateVars = { user: findUserByID(req.session.user_id, users) };
+  const email = findUserByID(req.session.user_id, users).email;
+  const templateVars = { user: email };
   res.render('users_login', templateVars);
 });
 
