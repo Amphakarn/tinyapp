@@ -1,3 +1,5 @@
+const { addNewUser, findUserByID, findUserByEmail, authenticateUser, urlsForUser, generateNewKey } = require('./helpers');
+
 const express = require('express');
 const app = express();
 const PORT = 3000;
@@ -10,10 +12,9 @@ app.set('view engine', 'ejs');
 app.use(cookieSession({
   name: 'session',
   keys: ['key1']
-}))
+}));
 
-// The body-parser library will convert the request body from a Buffer into string that we can read.
-// It will then add the data to the req(request) object under the key body.
+// The body-parser library will convert the request body from a Buffer into string that we can read and then add the data to the req(request) object under the key body.
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -36,68 +37,6 @@ const users = {
   }
 };
 
-const addNewUser = (email, password) => {
-  const newUserID = generateNewKey();
-
-  const newUserObj = {
-    id: newUserID,
-    email,
-    password: bcrypt.hashSync(password, saltRounds)
-  };
-
-  users[newUserID] = newUserObj;
-  return newUserID;
-};
-
-const findUserByID = (id) => {
-  for (const user in users) {
-    if (users[user].id === id) {
-      return users[user];
-    }
-  }
-  return false;
-};
-
-const findUserByEmail = (email) => {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
-    }
-  }
-  return false;
-};
-
-const authenticateUser = (email, password) => {
-  const user = findUserByEmail(email);
-  if (user && bcrypt.compareSync(password, user.password)) {
-    return user;
-  } else {
-    return false;
-  }
-  return false;
-};
-
-const urlsForUser = (id) => {
-  let matchedUrls = {};
-  for (const url in urlDatabase) {
-    if ((urlDatabase[url].id) === id) {
-      matchedUrls[url] = urlDatabase[url];
-    }
-  }
-  return matchedUrls;
-};
-
-// generate a random string to serve as shortURL
-const generateNewKey = () => {
-  let newKey = '';
-  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let charsLength = chars.length;
-  for (let i = 0; i < 6; i++) {
-    newKey += chars.charAt(Math.floor(Math.random() * charsLength));
-  }
-  return newKey;
-};
-
 // Check the contents as JSON object
 app.get('/users', (req, res) => {
   res.json(users);
@@ -108,7 +47,7 @@ app.get('/urlDB', (req, res) => {
 });
 
 app.get('/SpecificDB', (req, res) => {
-  res.json(urlsForUser(req.session.user_id));
+  res.json(urlsForUser(req.session.user_id, urlDatabase));
 });
 
 // Show the URLs and user_id
@@ -116,7 +55,7 @@ app.get('/urls', (req, res) => {
   const id = req.session.user_id;
   let matchedUrlDB = {};
   if (id) {
-    matchedUrlDB = urlsForUser(id);
+    matchedUrlDB = urlsForUser(id, urlDatabase);
     const templateVars = { urls: matchedUrlDB, user: id };
     res.render('urls_index', templateVars);
   } else {
@@ -126,8 +65,8 @@ app.get('/urls', (req, res) => {
 
 // Show the create new URL
 app.get('/urls/new', (req, res) => {
-  const templateVars = { user: findUserByID(req.session.user_id) };
-  if (!findUserByID(req.session.user_id)) {
+  const templateVars = { user: findUserByID(req.session.user_id, users) };
+  if (!findUserByID(req.session.user_id, users)) {
     res.redirect('/login');
   } else {
     res.render('urls_new', templateVars);
@@ -149,13 +88,13 @@ app.get('/u/:shortURL', (req, res) => {
 
 // Show registration page
 app.get('/register', (req, res) => {
-  const templateVars = { user: findUserByID(req.session.user_id) };
+  const templateVars = { user: findUserByID(req.session.user_id, users) };
   res.render('users_register', templateVars);
 });
 
 // Show login
 app.get('/login', (req, res) => {
-  const templateVars = { user: findUserByID(req.session.user_id) };
+  const templateVars = { user: findUserByID(req.session.user_id, users) };
   res.render('users_login', templateVars);
 });
 
@@ -203,8 +142,8 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 
 // Create login & Cookies
 app.post('/login', (req, res) => {
-  const user = authenticateUser(req.body.email, req.body.password);
-  const email = findUserByEmail(req.body.email);
+  const user = authenticateUser(req.body.email, req.body.password, users);
+  const email = findUserByEmail(req.body.email, users);
   if (user) {
     req.session.user_id = user.id;
     res.redirect('/urls');
@@ -227,11 +166,11 @@ app.post('/logout', (req, res) => {
 app.post('/register', (req, res) => {
   const newEmail = req.body.email;
   const newPwd = req.body.password;
-  const user = findUserByEmail(newEmail);
+  const user = findUserByEmail(newEmail, users);
   if (user) {
     res.status(403).send('This account exists in the system!');
   } else {
-    const userID = addNewUser(newEmail, newPwd);
+    const userID = addNewUser(newEmail, newPwd, users);
     req.session.user_id = userID;
     res.redirect('/urls');
   }
