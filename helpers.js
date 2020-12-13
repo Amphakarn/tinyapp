@@ -39,7 +39,6 @@ const authenticateUser = (email, password, usersDB) => {
   } else {
     return false;
   }
-  return false;
 };
 
 const urlsForUser = (id, urlDatabase) => {
@@ -64,4 +63,3 @@ const generateNewKey = () => {
 };
 
 module.exports = { addNewUser, findUserByID, findUserByEmail, authenticateUser, urlsForUser, generateNewKey };
-// module.exports = { findUserByEmail };
