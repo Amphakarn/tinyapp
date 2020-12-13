@@ -45,6 +45,11 @@ describe('findUserByEmail', function() {
     const expectedOutput = 'userRandomID';
     assert.equal(user.id, expectedOutput);
   });
+
+  it('should return false if email does not exist in the user database', function() {
+    const user = findUserByEmail('user@notbelongs.com', testUsers);
+    assert.isFalse(user, 'user email is invalid');
+  });
 });
 
 describe('authenticateUser', function() {
@@ -52,6 +57,11 @@ describe('authenticateUser', function() {
     const user = authenticateUser('user@example.com', 'purple-monkey-dinosaur', testUsers);
     const expectedOutput = 'userRandomID';
     assert.equal(user.id, expectedOutput);
+  });
+
+  it('should return false if email and/or password do not exist in the user database', function() {
+    const user = authenticateUser('user@example.com', 'not-valid-pwd', testUsers);
+    assert.isFalse(user, 'user email and/or password is invalid');
   });
 });
 
@@ -63,5 +73,14 @@ describe('urlsForUser', function() {
       't1h2cN': { longURL: 'https://www.tourismthailand.org', shortURL: 't1h2cN', id: 'userRandomID' }
     };
     assert.deepEqual(urls, expectedOutput);
+  });
+
+  it('should NOT return matched URL objects if user ID is invalid', function() {
+    const urls = urlsForUser('user2RandomID', testUrlDatabase);
+    const expectedOutput = {
+      'c2CVn2': { longURL: 'http://www.lighthouselabs.ca', shortURL: 'c2CVn2', id: 'userRandomID' },
+      't1h2cN': { longURL: 'https://www.tourismthailand.org', shortURL: 't1h2cN', id: 'userRandomID' }
+    };
+    assert.notDeepEqual(urls, expectedOutput);
   });
 });
