@@ -1,6 +1,8 @@
-const express = require("express");
+const express = require('express');
 const app = express();
 const PORT = 3000;
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 // Set ejs as the view engine
 app.set("view engine", "ejs");
@@ -25,12 +27,12 @@ const users = {
   "1": {
     id: "1",
     email: "aa@example.com",
-    password: "passwordA"
+    password: bcrypt.hashSync('passwordA', saltRounds)
   },
   "2": {
     id: "2",
     email: "bb@example.com",
-    password: "passwordB"
+    password: bcrypt.hashSync('passwordB', saltRounds)
   }
 };
 
@@ -40,7 +42,7 @@ const addNewUser = (email, password) => {
   const newUserObj = {
     id: newUserID,
     email,
-    password
+    password: bcrypt.hashSync(password, saltRounds)
   };
 
   users[newUserID] = newUserObj;
@@ -66,13 +68,12 @@ const findUserByEmail = (email) => {
 };
 
 const authenticateUser = (email, password) => {
-  const foundUser = findUserByEmail(email);
-  if (foundUser) {
-    if (password === foundUser.password) {
-      return foundUser;
-    } else {
-      return false;
-    }
+  const user = findUserByEmail(email);
+  if (user && bcrypt.compareSync(password, user.password)) {
+    return user;
+  } else {
+    return false;
+
   }
   return false;
 };
@@ -82,8 +83,8 @@ const urlsForUser = (id) => {
   for (const url in urlDatabase) {
     if ((urlDatabase[url].id) === id) {
       matchedUrls[url] = urlDatabase[url];
-    }    
-  }  
+    }
+  }
   // console.log("matchedUrls = ", matchedUrls);
   return matchedUrls;
 };
@@ -126,7 +127,7 @@ app.get("/urls", (req, res) => {
     res.render("urls_index", templateVars);
   } else {
     res.redirect("/login");
-  }  
+  }
 });
 
 // Show the create new URL
@@ -188,7 +189,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     res.redirect("/urls");
   } else {
     res.status(405).send("You do not have a permission to delete the data!");
-  }  
+  }
 });
 
 // Edit URL
@@ -205,7 +206,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
     res.redirect("/urls");
   } else {
     res.status(405).send("You do not have a permission to edit the data!");
-  }  
+  }
 });
 
 // Create login & Cookies
