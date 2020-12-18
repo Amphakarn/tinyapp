@@ -11,10 +11,9 @@ TinyApp is a full stack web application built with Node and Express that allows 
 !["screenshot message displayed when an unauthorized user accesses an URL that does not belong to the user"](https://github.com/Amphakarn/tinyapp/blob/master/docs/error-msg-not-login-urls-shortURL.png)
 !["screenshot urls page associated to the valid logged in user"](https://github.com/Amphakarn/tinyapp/blob/master/docs/urls-page.png?raw=true)
 !["screenshot register page"](https://github.com/Amphakarn/tinyapp/blob/master/docs/register-page.png?raw=true)
-!["screenshot error message displayed when a user registers with an existing account in the database"](https://github.com/Amphakarn/tinyapp/blob/master/docs/error-msg-account-exist.png?raw=true)
+!["screenshot error message displayed when a user registers with an existing account in the database"](https://github.com/Amphakarn/tinyapp/blob/master/docs/error-msg-account-exist-r2.png)
 !["screenshot create new URL page"](https://github.com/Amphakarn/tinyapp/blob/master/docs/create-new-url-page.png)
 !["screenshot edit long URL page"](https://github.com/Amphakarn/tinyapp/blob/master/docs/edit-long-url-page.png?raw=true)
-!["screenshot displayed a successfully redirected from a short URL to the long URL website"](https://github.com/Amphakarn/tinyapp/blob/master/docs/redirect-to-long-url-page.png?raw=true)
 
 
 ## Dependencies
