@@ -164,14 +164,19 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.post('/urls/:shortURL/edit', (req, res) => {
   const id = req.session.user_id;
   if (id) {
-    const shortURL = req.params.shortURL;
-    const longURL = req.body.longURL;
-    urlDatabase[shortURL] = {
-      longURL: longURL,
-      shortURL: shortURL,
-      id: req.session.user_id
-    };
-    res.redirect('/urls');
+    if (urlDatabase[req.params.shortURL].id === id) {
+      const shortURL = req.params.shortURL;
+      const longURL = req.body.longURL;
+      urlDatabase[shortURL] = {
+        longURL: longURL,
+        shortURL: shortURL,
+        id: req.session.user_id
+      };
+      res.redirect('/urls');
+    } else {
+      const templateVars = { error: 'You do not own this URL, so you cannot edit the data!', user: users[id].email }
+      res.render('error', templateVars);
+    }    
   } else {
     const templateVars = { error: 'You do not have a permission to edit the data!', user: '' };
     res.render('error', templateVars);
