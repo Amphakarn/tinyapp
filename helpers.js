@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+// Add new user obj to users database
 const addNewUser = (email, password, usersDB) => {
   const newUserID = generateNewKey();
 
@@ -14,6 +15,7 @@ const addNewUser = (email, password, usersDB) => {
   return newUserID;
 };
 
+// Lookup user by id
 const findUserByID = (id, usersDB) => {
   for (const user in usersDB) {
     if (usersDB[user].id === id) {
@@ -23,6 +25,7 @@ const findUserByID = (id, usersDB) => {
   return false;
 };
 
+// Lookup user by email
 const findUserByEmail = (email, usersDB) => {
   for (const user in usersDB) {
     if (usersDB[user].email === email) {
@@ -32,6 +35,7 @@ const findUserByEmail = (email, usersDB) => {
   return false;
 };
 
+// Verify user authentication by email and password
 const authenticateUser = (email, password, usersDB) => {
   const user = findUserByEmail(email, usersDB);
   if (user && bcrypt.compareSync(password, user.password)) {
@@ -41,6 +45,7 @@ const authenticateUser = (email, password, usersDB) => {
   }
 };
 
+// Filter matched URLs by user
 const urlsForUser = (id, urlDatabase) => {
   let matchedUrls = {};
   for (const url in urlDatabase) {
@@ -51,7 +56,7 @@ const urlsForUser = (id, urlDatabase) => {
   return matchedUrls;
 };
 
-// generate a random string to serve as shortURL
+// Generate a random string to serve as shortURL
 const generateNewKey = () => {
   let newKey = '';
   let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

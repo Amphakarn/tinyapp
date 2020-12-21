@@ -10,11 +10,15 @@ const cookieSession = require('cookie-session');
 
 // Set ejs as the view engine
 app.set('view engine', 'ejs');
+
 app.use(cookieSession({
   name: 'session',
   keys: ['key1']
 }));
 
+app.listen(PORT, () => {
+  console.log(`Tinyapp listening on port ${PORT}!`);
+});
 
 // The body-parser library will convert the request body from a Buffer into string that we can read and then add the data to the req(request) object under the key body.
 const bodyParser = require('body-parser');
@@ -48,11 +52,11 @@ app.get('/', (req, res) => {
     res.redirect('/urls');
   } else {
     res.redirect('/login');
-  }  
+  }
 });
 
 
-// Show the URLs and user_id
+// Show the URLs for logged-in users only
 app.get('/urls', (req, res) => {
   const id = req.session.user_id;
   let matchedUrlDB = {};
@@ -68,28 +72,32 @@ app.get('/urls', (req, res) => {
 });
 
 
-// Show the create new URL
+// Show the create new URL only for logged-in users
 app.get('/urls/new', (req, res) => {
   const email = findUserByID(req.session.user_id, users).email;
-  const templateVars = { user: email };
   if (!email) {
     res.redirect('/login');
   } else {
+    const templateVars = { user: email };
     res.render('urls_new', templateVars);
   }
 });
 
 
-// Show the short URL associated to the long URL & edit URL
+// Show the short URL associated to the long URL & edit URL only for logged-in users
 app.get('/urls/:shortURL', (req, res) => {
   if (req.session.user_id) {
     const email = findUserByID(req.session.user_id, users).email;
     if (urlDatabase[req.params.shortURL]) {
       // Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
-      const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: email };
+      const templateVars = {
+        shortURL: req.params.shortURL,
+        longURL: urlDatabase[req.params.shortURL].longURL,
+        user: email
+      };
       res.render('urls_show', templateVars);
     } else {
-      const templateVars = { error: 'This shortURL does not exist!', user: email }
+      const templateVars = { error: 'This shortURL does not exist!', user: email };
       res.render('error', templateVars);
     }
   } else {
@@ -106,23 +114,31 @@ app.get('/u/:shortURL', (req, res) => {
 });
 
 
-// Show registration page
+// If use is logged-in, redirect to /urls page, otherwise show registration form
 app.get('/register', (req, res) => {
   const email = findUserByID(req.session.user_id, users).email;
-  const templateVars = { user: email };
-  res.render('users_register', templateVars);
+  if (email) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = { user: email };
+    res.render('users_register', templateVars);
+  }
 });
 
 
-// Show login
+// If use is logged-in, redirect to /urls page, otherwise show login form
 app.get('/login', (req, res) => {
   const email = findUserByID(req.session.user_id, users).email;
-  const templateVars = { user: email };
-  res.render('users_login', templateVars);
+  if (email) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = { user: email };
+    res.render('users_login', templateVars);
+  }
 });
 
 
-// Create a new URL
+// Only logged-in users can create a new URL
 app.post('/urls', (req, res) => {
   if (req.session.user_id) {
     const shortURL = generateNewKey();
@@ -135,13 +151,13 @@ app.post('/urls', (req, res) => {
     };
     res.redirect(`/urls/${shortURL}`);
   } else {
-    const templateVars = { error: 'Please login first to add short url.', user: '' }
+    const templateVars = { error: 'Please login first to add short url.', user: '' };
     res.render('error', templateVars);
   }
 });
 
 
-// Delete URL
+// Logged-in users can delete only URLs that belong to them
 app.post('/urls/:shortURL/delete', (req, res) => {
   const id = req.session.user_id;
   if (id) {
@@ -150,7 +166,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
       delete urlDatabase[shortURL];
       res.redirect('/urls');
     } else {
-      const templateVars = { error: 'You do not own this URL, so you cannot delete the data!', user: users[id].email }
+      const templateVars = { error: 'You do not own this URL, so you cannot delete the data!', user: users[id].email };
       res.render('error', templateVars);
     }
   } else {
@@ -160,7 +176,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 });
 
 
-// Edit URL
+// Logged-in users can edit only URLs that belong to them
 app.post('/urls/:shortURL/edit', (req, res) => {
   const id = req.session.user_id;
   if (id) {
@@ -168,15 +184,15 @@ app.post('/urls/:shortURL/edit', (req, res) => {
       const shortURL = req.params.shortURL;
       const longURL = req.body.longURL;
       urlDatabase[shortURL] = {
-        longURL: longURL,
-        shortURL: shortURL,
+        longURL,
+        shortURL,
         id: req.session.user_id
       };
       res.redirect('/urls');
     } else {
-      const templateVars = { error: 'You do not own this URL, so you cannot edit the data!', user: users[id].email }
+      const templateVars = { error: 'You do not own this URL, so you cannot edit the data!', user: users[id].email };
       res.render('error', templateVars);
-    }    
+    }
   } else {
     const templateVars = { error: 'You do not have a permission to edit the data!', user: '' };
     res.render('error', templateVars);
@@ -184,7 +200,7 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 });
 
 
-// Create login & Cookies
+// Check users authentication for login & Cookies
 app.post('/login', (req, res) => {
   const user = authenticateUser(req.body.email, req.body.password, users);
   const email = findUserByEmail(req.body.email, users);
@@ -195,7 +211,6 @@ app.post('/login', (req, res) => {
     if (!email) {
       const templateVars = { error: 'Cannot find your account!', user: '' };
       res.render('error', templateVars);
-
     } else {
       const templateVars = { error: 'Wrong email address or password!', user: '' };
       res.render('error', templateVars);
@@ -211,7 +226,7 @@ app.post('/logout', (req, res) => {
 });
 
 
-// Create new registra
+// Create new registra only if the email doesn't exist in the system
 app.post('/register', (req, res) => {
   const newEmail = req.body.email;
   const newPwd = req.body.password;
@@ -224,9 +239,4 @@ app.post('/register', (req, res) => {
     req.session.user_id = userID;
     res.redirect('/urls');
   }
-});
-
-
-app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}!`);
 });
